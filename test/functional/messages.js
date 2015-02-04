@@ -7,7 +7,7 @@ var assert = require('assert')
 describe('messages endpoint', function() {
     it('should translate and create a message', function(done) {
         request.post(config.messages_endpoint, {
-            body: 'type,location;latitude,21.3;longitude,23.3',
+            body: 'type,location;latitude,21.3;longitude,23.3\ntype,location;latitude,22.3;longitude,24.4',
             headers: {
                 Authorization: 'Bearer ' + fixtures.testJwtToken
             }
