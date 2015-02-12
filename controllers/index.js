@@ -1,4 +1,5 @@
 module.exports = {
     messages: require('./messages'),
-    ops: require('./ops')
+    ops: require('./ops'),
+    telemetry: require('./telemetry')
 };
