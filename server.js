@@ -45,13 +45,14 @@ app.use(express.compress());
 function handleData(req, res) {
   console.log(req);
   console.log(res);
+  res.send("Ok!");
 }
 
 app.enable('trust proxy');
 app.disable('x-powered-by');
 
 server.listen(config.internal_port);
-app.get(config.ops_path, handleData);
+app.get('/', handleData);
 
 //app.get(config.ops_path + '/health', controllers.ops.health);
 //app.post(config.messages_path, middleware.accessTokenRelay, controllers.messages.create);
