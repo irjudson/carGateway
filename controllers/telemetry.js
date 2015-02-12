@@ -1,4 +1,5 @@
-var config = require('../config');
+var config = require('../config')
+  , log = require('winston');
 
 // 864721259083786
 
@@ -70,6 +71,7 @@ var nameMap = {
   "kff1001" : "Speed (GPS)",
   "kff1005" : "GPS Longitude",
   "kff1006" : "GPS Latitude",
+  "kff1007" : "GPS Bearing",
   "kff1010" : "GPS Altitude",
   "kff1201" : "Miles Per Gallon(Instant)",
   "kff1202" : "Turbo Boost & Vacuum Gauge",
@@ -160,6 +162,6 @@ exports.handleData = function(req, res) {
       message[key] = req.query[key];
     }
   }
-  console.log(message);
+  log.log(message);
   res.send("Ok!");
 }

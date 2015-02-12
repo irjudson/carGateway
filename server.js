@@ -10,19 +10,7 @@ var express = require('express')
   , passport = require('passport')
   , utils = require('./utils');
 
-//function rawBody(req, res, next) {
-//  req.setEncoding('utf8');
-//  req.rawBody = '';
-//  req.on('data', function(chunk) {
-//    req.rawBody += chunk;
-//  });
-//  req.on('end', function(){
-//    next();
-//  });
-//}
-
-app.use(express.logger(config.request_log_format));
-app.use(express.compress());
+log.add(log.transports.File, { filename: 'server.log' });
 
 //app.use(passport.initialize());
 //app.use(rawBody);
@@ -41,6 +29,9 @@ app.use(express.compress());
 //        done(null, principal);
 //    });
 //}));
+
+app.use(express.logger(config.request_log_format));
+app.use(express.compress());
 
 app.enable('trust proxy');
 app.disable('x-powered-by');
