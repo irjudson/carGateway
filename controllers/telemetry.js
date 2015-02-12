@@ -162,6 +162,6 @@ exports.handleData = function(req, res) {
       message[key] = req.query[key];
     }
   }
-  log.log(message);
+  log.info(message);
   res.send("Ok!");
 }
