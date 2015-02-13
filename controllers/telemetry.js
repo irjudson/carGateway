@@ -1,10 +1,18 @@
-var config = require('../config')
-  , log = require('winston')
+var log = require('winston')
   , utils = require('../utils')
   , nitrogen = require('nitrogen');
 
+var config = {
+    host: process.env.HOST_NAME || 'api.nitrogen.io',
+    http_port: process.env.PORT || 443,
+    protocol: process.env.PROTOCOL || 'https',
+    api_key: process.env.API_KEY,
+    log_levels: [ "debug", "info", "warn", "error" ]
+};
+
 var service = new nitrogen.Service(config);
 var sessions = {};
+var principals = {};
 
 // 864721259083786
 
@@ -159,22 +167,27 @@ var nameMap = {
 };
 
 exports.handleData = function(req, res) {
-	var inMsg = {
-		body: {}
-	};
+  var inMsg = {
+    type: '_telemetry',
+    body: {}
+  };
   for (var key in req.query) {
     if (key in nameMap) {
-      inMsg[nameMap[key]] = req.query[key];
+      inMsg.body[nameMap[key]] = req.query[key];
     } else {
       inMsg.body[key] = req.query[key];
     }
   }
-  
-  var userId = inMsg['eml'];
+ 
+  var userId = inMsg.body['eml'].toString();
   var credentialArray = userId.split("@");
   var deviceId = credentialArray[0];
-  
-  if (! deviceId in sessions) {
+  inMsg.body['Nitrogen Device ID'] = deviceId;
+  inMsg.to = deviceId;
+  inMsg.type = '_telemetry';
+  delete inMsg.body['eml'];
+
+  if (!(deviceId in sessions)) {
     var principal = new nitrogen.Device({
         accessToken: {
             token: credentialArray[1]
@@ -187,17 +200,18 @@ exports.handleData = function(req, res) {
         if (err || !session) {
             console.log("Error resuming: " + JSON.stringify(err));
         }
-        sessions[deviceId] = {
-          principal: principal,
-          session: session
-        };
+        sessions[deviceId] = session;
+	principals[deviceId] = principal;
     });
   }
-  
+
   var msg = new nitrogen.Message(inMsg);
-  msg.send(sessions[deviceId], function(err, message) {
+
+  if (deviceId in sessions) {
+    msg.send(sessions[deviceId], function(err, message) {
       if (err) console.log("Error sending message: " + JSON.stringify(err));
-  });            
- 
+    });            
+  }
+
   res.send("Ok!");
 }

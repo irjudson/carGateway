@@ -19,5 +19,3 @@ server.listen(config.internal_port);
 app.get('/', controllers.telemetry.handleData);
 
 app.get(config.ops_path + '/health', controllers.ops.health);
-
-log.info("car gateway service has initialized and exposed external api at: " + config.api_endpoint + " on internal port: " + config.internal_port);
