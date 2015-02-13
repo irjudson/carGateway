@@ -167,12 +167,9 @@ var nameMap = {
 };
 
 exports.handleData = function(req, res) {
+  var locMsg = null;
   var inMsg = {
     type: '_telemetry',
-    body: {}
-  };
-  var locMsg = {
-    type: 'location',
     body: {}
   };
   for (var key in req.query) {
@@ -191,16 +188,23 @@ exports.handleData = function(req, res) {
   inMsg.type = '_telemetry';
   delete inMsg.body['eml'];
 
-  locMsg.to = deviceId;
-  locMsg.from = deviceId;
-  locMsg.body['longitude'] = inMsg.body['GPS Longitude'][0];
-  locMsg.body['latitude'] = inMsg.body['GPS Latitude'][0];
-  locMsg.body['heading'] = inMsg.body['GPS Bearing'];
-  locMsg.body['speed'] = inMsg.body['Speed (GPS)'][0];
-  locMsg.body['altitude'] = inMsg.body['GPS Altitude'];
-  locMsg.body['accuracy'] = inMsg.body['GPS Accurcy'];
-  locMsg.body['altitudeAccuracy'] = inMsg.body['GPS Satellites'];
-  
+  if ('GPS Longitude' in inMsg.body && 'GPS Latitude' in inMsg.body) {
+    locMsg = {
+      to: deviceId,
+      from: deviceId,
+      type: 'location',
+      body: {
+        'longitude' : Number(inMsg.body['GPS Longitude'][0]),
+        'latitude' : Number(inMsg.body['GPS Latitude'][0]),
+        'heading' : Number(inMsg.body['GPS Bearing']) || -1.0,
+        'speed' : Number(inMsg.body['Speed (GPS)'][0]) || -1.0,
+        'altitude' : Number(inMsg.body['GPS Altitude']) || -1.0,
+        'accuracy' : Number(inMsg.body['GPS Accurcy']) || -1.0,
+        'altitudeAccuracy' : Number(inMsg.body['GPS Satellites']) || -1.0
+      }
+    };
+  }
+
   if (!(deviceId in sessions)) {
     var principal = new nitrogen.Device({
         accessToken: {
@@ -226,10 +230,12 @@ exports.handleData = function(req, res) {
       if (err) console.log("Error sending message: " + JSON.stringify(err));
     });
     // Send a location message for the demo
-    locMsg.send(sessions[deviceId], function(err, message) {
-      if (err) console.log("Error sending message: " + JSON.stringify(err));
-    });
-        
+    if (locMsg != null) {
+      var lmsg = new nitrogen.Message(locMsg);
+      lmsg.send(sessions[deviceId], function(err, message) {
+        if (err) console.log("Error sending location message: " + JSON.stringify(err));
+      });
+    }
   }
 
   res.send("Ok!");
