@@ -171,6 +171,10 @@ exports.handleData = function(req, res) {
     type: '_telemetry',
     body: {}
   };
+  var locMsg = {
+    type: 'location',
+    body: {}
+  };
   for (var key in req.query) {
     if (key in nameMap) {
       inMsg.body[nameMap[key]] = req.query[key];
@@ -187,6 +191,16 @@ exports.handleData = function(req, res) {
   inMsg.type = '_telemetry';
   delete inMsg.body['eml'];
 
+  locMsg.to = deviceId;
+  locMsg.from = deviceId;
+  locMsg.body['longitude'] = inMsg.body['GPS Longitude'][0];
+  locMsg.body['latitude'] = inMsg.body['GPS Latitude'][0];
+  locMsg.body['heading'] = inMsg.body['GPS Bearing'];
+  locMsg.body['speed'] = inMsg.body['Speed (GPS)'][0];
+  locMsg.body['altitude'] = inMsg.body['GPS Altitude'];
+  locMsg.body['accuracy'] = inMsg.body['GPS Accurcy'];
+  locMsg.body['altitudeAccuracy'] = inMsg.body['GPS Satellites'];
+  
   if (!(deviceId in sessions)) {
     var principal = new nitrogen.Device({
         accessToken: {
@@ -206,11 +220,16 @@ exports.handleData = function(req, res) {
   }
 
   var msg = new nitrogen.Message(inMsg);
-
+  
   if (deviceId in sessions) {
     msg.send(sessions[deviceId], function(err, message) {
       if (err) console.log("Error sending message: " + JSON.stringify(err));
-    });            
+    });
+    // Send a location message for the demo
+    locMsg.send(sessions[deviceId], function(err, message) {
+      if (err) console.log("Error sending message: " + JSON.stringify(err));
+    });
+        
   }
 
   res.send("Ok!");
