@@ -1,34 +1,13 @@
 var express = require('express')
   , app = express()
   , server = require('http').createServer(app)
-  , BearerStrategy = require('passport-http-bearer').Strategy
   , config = require('./config')
   , controllers = require('./controllers')
-  , jwt = require('jsonwebtoken')
   , log = require('winston')
   , middleware = require('./middleware')
-  , passport = require('passport')
   , utils = require('./utils');
 
 log.add(log.transports.File, { filename: 'server.log' });
-
-//app.use(passport.initialize());
-//app.use(rawBody);
-
-//passport.use(new BearerStrategy({}, function(token, done) {
-//    jwt.verify(token, config.access_token_signing_key, function(err, jwtToken) {
-//        if (err) return done(err);
-//
-//        var principal = {
-//            id: jwtToken.iss,
-//
-//            rawJwtToken: token,
-//            jwtToken: jwtToken
-//        };
-//
-//        done(null, principal);
-//    });
-//}));
 
 app.use(express.logger(config.request_log_format));
 app.use(express.compress());
@@ -39,7 +18,6 @@ app.disable('x-powered-by');
 server.listen(config.internal_port);
 app.get('/', controllers.telemetry.handleData);
 
-//app.get(config.ops_path + '/health', controllers.ops.health);
-//app.post(config.messages_path, middleware.accessTokenRelay, controllers.messages.create);
+app.get(config.ops_path + '/health', controllers.ops.health);
 
 log.info("car gateway service has initialized and exposed external api at: " + config.api_endpoint + " on internal port: " + config.internal_port);

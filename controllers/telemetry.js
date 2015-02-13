@@ -1,5 +1,10 @@
 var config = require('../config')
-  , log = require('winston');
+  , log = require('winston')
+  , utils = require('../utils')
+  , nitrogen = require('nitrogen');
+
+var service = new nitrogen.Service(config);
+var sessions = {};
 
 // 864721259083786
 
@@ -154,14 +159,45 @@ var nameMap = {
 };
 
 exports.handleData = function(req, res) {
-  var message = {};
+	var inMsg = {
+		body: {}
+	};
   for (var key in req.query) {
     if (key in nameMap) {
-      message[nameMap[key]] = req.query[key];
+      inMsg[nameMap[key]] = req.query[key];
     } else {
-      message[key] = req.query[key];
+      inMsg.body[key] = req.query[key];
     }
   }
-  log.info(message);
+  
+  var userId = inMsg['eml'];
+  var credentialArray = userId.split("@");
+  var deviceId = credentialArray[0];
+  
+  if (! deviceId in sessions) {
+    var principal = new nitrogen.Device({
+        accessToken: {
+            token: credentialArray[1]
+        },
+        id: deviceId,
+        nickname: deviceId
+    });
+ 
+    service.resume(principal, function(err, session, principal) {
+        if (err || !session) {
+            console.log("Error resuming: " + JSON.stringify(err));
+        }
+        sessions[deviceId] = {
+          principal: principal,
+          session: session
+        };
+    });
+  }
+  
+  var msg = new nitrogen.Message(inMsg);
+  msg.send(sessions[deviceId], function(err, message) {
+      if (err) console.log("Error sending message: " + JSON.stringify(err));
+  });            
+ 
   res.send("Ok!");
 }
