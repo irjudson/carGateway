@@ -22,6 +22,7 @@
     "express": "~3.5.3",
     "jsonwebtoken": "~1.1.2",
     "nitrogen-local-providers": "~0.3.10",
+    "nitrogen": "*",
     "passport": "~0.2.1",
     "passport-http-bearer": "~1.0.1",
     "passport-local": "~1.0.0",
